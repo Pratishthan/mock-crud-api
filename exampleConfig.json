@@ -22,7 +22,7 @@
         "port": 3000,
         "path": "/test",
         "input": {
-            "method": "text2"
+            "request": "text2"
         },
         "output": {
             "headers": {
@@ -39,7 +39,7 @@
         "port": 3000,
         "path": "/test1",
         "input": {
-            "payload": {
+            "request": {
                 "name": "John Doe",
                 "age": 30
             }

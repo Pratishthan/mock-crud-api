@@ -31,6 +31,12 @@ class CreateServer {
           }
           config.output.response = fs.readFileSync(config.output.filePath, "utf-8");
         }
+        if (config.input.filePath) {
+          if (!fs.existsSync(config.input.filePath)) {
+            throw new Error(`File not found at path: ${config.input.filePath}`);
+          }
+          config.input.request = fs.readFileSync(config.input.filePath, "utf-8");
+        }
         validateData(config);
         return config;
       } catch (err) {
@@ -80,7 +86,7 @@ class CreateServer {
       if (config.method.includes(req.method) && config.path === reqUrl) {
         console.log(chalk.green("Matched Config:"), config.name);
 
-        if (deepCompare(reqObj, config.input)) {
+        if (deepCompare(reqObj, config.input.request)) {
           console.log(chalk.green("Input Matched"));
           httpResponse(res, config);
           return;
