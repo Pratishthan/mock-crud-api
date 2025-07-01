@@ -7,40 +7,65 @@
         "input": {
             "method": "text"
         },
-        "code": 200,
-        "output": "text",
-        "errorCode": 500,
-        "errorMessage": "Internal Server Error"
+        "output": {
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "code": 201,
+            "response": "Created"
+        },
+        "description": "This server handles POST requests and returns a JSON response indicating creation."
     },
     {
-        "name": "get-server-1",
-        "method": "GET",
-        "port": 3001,
-        "path": "/test",
-        "input": null,
-        "code": 200,
-        "output": "text"
-    },
-    {
-        "name": "get-server-2",
-        "method": ["GET"],
-        "port": 3002,
-        "path": "/test",
-        "input": {},
-        "code": 201,
-        "output": "text"
-    },
-    {
-        "name": "patch-server-3",
-        "method": ["PATCH", "PUT"],
-        "port": 3003,
+        "name": "post-server",
+        "method": "POST",
+        "port": 3000,
         "path": "/test",
         "input": {
-            "method": "json"
+            "method": "text2"
         },
-        "code": 201,
-        "output": "Updated",
-        "errorCode": 500,
-        "errorMessage": "Internal Server Error"
+        "output": {
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "code": 201,
+            "response": "Created"
+        },
+        "description": "This server handles POST requests and returns a JSON response indicating creation."
+    },
+    {
+        "name": "post-server",
+        "method": "POST",
+        "port": 3000,
+        "path": "/test1",
+        "input": {
+            "payload": {
+                "name": "John Doe",
+                "age": 30
+            }
+        },
+        "output": {
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "filePath": "src/index.json"
+        },
+        "description": "This server handles POST requests and returns a JSON response indicating creation."
+    },
+     {
+        "name": "post-server",
+        "method": "POST",
+        "port": 3000,
+        "path": "/test1",
+        "input": {
+            "filePath": "src/index.json"
+        },
+        "output": {
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "filePath": "src/index.json"
+        },
+        "description": "This server handles POST requests and returns a JSON response indicating creation."
     }
 ]

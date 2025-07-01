@@ -1,127 +1,77 @@
 const fs = require("fs");
 
-
 const deepCompare = (obj1, obj2, visited = new WeakMap()) => {
-  if (typeof obj1 !== typeof obj2) {
-    return false;
-  }
-  if (typeof obj1 === "object" && typeof obj2 === "object") {
-    if (
-      Array.isArray(obj1) !== Array.isArray(obj2) ||
-      obj1.length !== obj2.length
-    ) {
-      return false;
-    }
+  if (typeof obj1 !== typeof obj2) return false;
 
-    const obj1Visited = visited.get(obj1);
-    const obj2Visited = visited.get(obj2);
+  if (typeof obj1 === "object" && obj1 !== null && obj2 !== null) {
+    if (Array.isArray(obj1) !== Array.isArray(obj2)) return false;
+    if (Array.isArray(obj1) && obj1.length !== obj2.length) return false;
 
-    if (obj1Visited && obj2Visited) {
-      return true; // Circular reference detected, consider them equal
-    }
-
+    if (visited.get(obj1) && visited.get(obj2)) return true;
     visited.set(obj1, true);
     visited.set(obj2, true);
 
-    if (Array.isArray(obj1)) {
-      for (let i = 0; i < obj1.length; i++) {
-        if (!deepCompare(obj1[i], obj2[i], visited)) {
-          return false;
-        }
-      }
-    } else {
-      const keys1 = Object.keys(obj1);
-
-      for (const key of keys1) {
-        if (
-          !Object.prototype.hasOwnProperty.call(obj2, key) ||
-          !deepCompare(obj1[key], obj2[key], visited)
-        ) {
-          return false;
-        }
+    const keys1 = Object.keys(obj1);
+    for (const key of keys1) {
+      if (!Object.prototype.hasOwnProperty.call(obj2, key) || !deepCompare(obj1[key], obj2[key], visited)) {
+        return false;
       }
     }
+    return true;
   } else {
-    if (obj1 !== obj2) {
-      return false;
-    }
+    return obj1 === obj2;
   }
-
-  return true;
 };
 
-const loadConfig = (config) => {
-  const configObj = fs.readFileSync(config, "utf8");
-  const configJson = JSON.parse(configObj);
-  return configJson;
+const loadConfig = (configPath) => {
+  const rawData = fs.readFileSync(configPath, "utf-8");
+  return JSON.parse(rawData);
 };
 
-const clearUrl = (url) => {
-  let urlArr = url.split("?");
-  return urlArr[0];
-};
+const clearUrl = (url) => url.split("?")[0];
 
 const parseQueryString = (queryString) => {
-  const queryObj = {};
-  const keyValuePairs = queryString.split("&");
-  keyValuePairs.forEach((pair) => {
-    const [key, value] = pair.split("=");
-    queryObj[key] = value;
-  });
-  return queryObj;
+  return queryString.split("&").reduce((acc, pair) => {
+    const [key, val] = pair.split("=");
+    acc[key] = val;
+    return acc;
+  }, {});
 };
-
 
 const validateData = (data) => {
-  if(!data.port) {
-    throw new Error("Port is required");
-  }
+  if (!data.port) throw new Error("Port is required");
 };
 
-/**
- *
- * @param {Object} res
- * @param {string} errorCode
- * @param {string} errorMessage
- * @returns {Object}
- * @description Returns an object with errorCode and errorMessage if they are present
- */
-const httpErrorResponseIfPresent = (errorCode = 404, errorMessage = "Not Found") => {
-  if(errorCode === null) {
-    errorCode = 404;
-  }
-  if(errorMessage === null) {
-    errorMessage = "Not Found";
-  }
-  return { errorCode, errorMessage };
+const httpErrorResponse = (res) => {
+  res.writeHead(404, { "Content-Type": "text/plain" });
+  res.end("Not Found");
 };
 
-const httpResponseIfPresent = (code = 200, output = "OK") => {
-  if(code === null) {
-    code = 200;
-  }
-  if(output === null) {
-    output = "OK";
-  }
-  return { code, output };
+const httpResponse = (res, config) => {
+    if (!config || !config.output) {
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("Internal Server Error: No output configuration provided");
+        return;
+    }
+    res.writeHead(200, config.output.headers || { "Content-Type": "text/plain" });
+    res.end(config.output.response);
 };
 
 const validateAndCheckMethod = (methods) => {
   const allowedMethods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"];
-  if(!methods) {
-    throw new Error(`Invalid Methods are required. Allowed methods are ${allowedMethods.join(", ")}`);
-  }
-  if(typeof methods === "string") {
-    methods = [methods];
-  }
-  methods.forEach((method) => {
-    if(!allowedMethods.includes(method)) {
-      throw new Error(`Invalid Methods are required. Allowed methods are ${allowedMethods.join(", ")}`);
+
+  if (!methods) throw new Error("Method is required");
+  if (typeof methods === "string") methods = [methods];
+
+  const upperMethods = methods.map(m => m.toUpperCase());
+  for (const m of upperMethods) {
+    if (!allowedMethods.includes(m)) {
+      throw new Error(`Invalid method '${m}'. Allowed methods are ${allowedMethods.join(", ")}`);
     }
-  });
-  methods = methods.map((method) => method.toUpperCase());
-  return methods;
-}
+  }
+
+  return upperMethods;
+};
 
 module.exports = {
   deepCompare,
@@ -129,7 +79,7 @@ module.exports = {
   clearUrl,
   parseQueryString,
   validateData,
-  httpErrorResponseIfPresent,
-  httpResponseIfPresent,
+  httpErrorResponse,
+  httpResponse,
   validateAndCheckMethod
 };
