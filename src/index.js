@@ -86,7 +86,7 @@ class CreateServer {
       if (config.method.includes(req.method) && config.path === reqUrl) {
         console.log(chalk.green("Matched Config:"), config.name);
 
-        if (deepCompare(reqObj, config.input.request)) {
+        if (!config.input.request || deepCompare(reqObj, config.input.request)) {
           console.log(chalk.green("Input Matched"));
           httpResponse(res, config);
           return;
